@@ -7,9 +7,92 @@ void show_help() {
     printf("  put <file>         - Upload file to server\n");
     printf("  cd <path>          - Change directory\n");
     printf("  pwd                - Print current directory\n");
+    printf("  mkdir <name>       - Create a new directory\n");
+    printf("  rmdir <name>       - Remove a directory\n");
     printf("  help               - Show this help\n");
     printf("  quit               - Exit the client\n\n");
 }
+
+void handle_admin_commands(SSL *ssl) {
+    char input[256];
+    printf("Admin commands:\n");
+    printf("  adduser <username> <password> <homedir>\n");
+    printf("  deluser <username>\n");
+    printf("  listusers           - List all users\n");
+    printf("  exit                - Exit admin mode\n\n");
+    
+    while (1) {
+        printf("admin> ");
+        fgets(input, sizeof(input), stdin);
+        input[strcspn(input, "\n")] = '\0';
+        
+        if (strcmp(input, "exit") == 0) break;
+        
+        char *cmd = strtok(input, " ");
+        if (strcmp(cmd, "adduser") == 0) {
+            char *username = strtok(NULL, " ");
+            char *password = strtok(NULL, " ");
+            char *homedir = strtok(NULL, " ");
+            
+            if (username && password && homedir) {
+                command_t cmd_pkt = {7, "", "", "", "", ""};  // Initialize all fields with default values
+                strncpy(cmd_pkt.username, username, 50);
+                strncpy(cmd_pkt.password, password, 50);
+                strncpy(cmd_pkt.home_dir, homedir, MAX_PATH_LENGTH);
+                SSL_write(ssl, &cmd_pkt, sizeof(command_t));
+                printf("laa");
+                
+                char response[20];
+                SSL_read(ssl, response, sizeof(response));
+                response[sizeof(response)-1] = '\0';
+                printf("%s\n", response);
+            } else {
+                printf("Usage: adduser <username> <password> <homedir>\n");
+            }
+        } else if (strcmp(cmd, "deluser") == 0) {
+            char *username = strtok(NULL, " ");
+            
+            if (username) {
+                command_t cmd_pkt = {8, "", "", "", "", ""};
+                strncpy(cmd_pkt.username, username, 50);
+                
+                SSL_write(ssl, &cmd_pkt, sizeof(command_t));
+                
+                char response[20];
+                SSL_read(ssl, response, sizeof(response));
+                response[sizeof(response)-1] = '\0';
+                printf("%s\n", response);
+            } else {
+                printf("Usage: deluser <username>\n");
+            }
+        } else if (strcmp(cmd, "listusers") == 0) {
+            command_t cmd_pkt = {9, "", "", "", "", ""};
+            SSL_write(ssl, &cmd_pkt, sizeof(command_t));
+            
+            char buffer[512];
+            printf("\n%-20s %s\n", "USERNAME", "HOME DIRECTORY");
+            printf("-------------------- --------------------\n");
+            
+            while (1) {
+                int bytes = SSL_read(ssl, buffer, sizeof(buffer)-1);
+                if (bytes <= 0) break;
+                
+                buffer[bytes] = '\0';
+                if (strcmp(buffer, "USER_LIST_END") == 0) break;
+                if (strcmp(buffer, "USER_LIST_START") == 0) continue;
+                if (strcmp(buffer, "PERMISSION_DENIED") == 0) {
+                    printf("Permission denied\n");
+                    break;
+                }
+                
+                printf("%s\n", buffer);
+            }
+            printf("\n");
+        } else {
+            printf("Unknown admin command\n");
+        }
+    }
+} 
 
 int main(int argc, char **argv) {
     if (argc != 3) {
@@ -58,11 +141,11 @@ int main(int argc, char **argv) {
     }
     
     // Authenticate
-    auth_struct_t auth;
+    auth_shared_t auth;
     strncpy(auth.username, argv[2], 50);
     strncpy(auth.password, password, 50);
     
-    SSL_write(ssl, &auth, sizeof(auth_struct_t));
+    SSL_write(ssl, &auth, sizeof(auth_shared_t));
     
     char auth_response[20];
     SSL_read(ssl, auth_response, sizeof(auth_response));
@@ -78,10 +161,15 @@ int main(int argc, char **argv) {
     
     printf("Connected to ByteFlow-FTP server\n");
     show_help();
+
+    // Check for admin
+    if (strcmp(argv[2], "admin") == 0) {
+        handle_admin_commands(ssl);
+    }
     
     // Main command loop
     char input[256];
-    char current_dir[MAX_PATH_LENGTH] = "";
+    //char current_dir[MAX_PATH_LENGTH] = ""; //not used warning
     
     while (1) {
         printf("ftp> ");
@@ -100,7 +188,7 @@ int main(int argc, char **argv) {
             show_help();
         }
         else if (strcmp(cmd, "ls") == 0) {
-            command_t cmd_pkt = {0};
+            command_t cmd_pkt = {0, "", "", "", "", ""};  // Initialize all fields with default values
             if (arg) strncpy(cmd_pkt.path, arg, MAX_PATH_LENGTH);
             SSL_write(ssl, &cmd_pkt, sizeof(command_t));
             
@@ -117,7 +205,7 @@ int main(int argc, char **argv) {
             printf("\n");
         }
         else if (strcmp(cmd, "get") == 0 && arg) {
-            command_t cmd_pkt = {1};
+            command_t cmd_pkt = {1, "", "", "", "", ""};  // Initialize all fields with default values
             strncpy(cmd_pkt.path, arg, MAX_PATH_LENGTH);
             SSL_write(ssl, &cmd_pkt, sizeof(command_t));
             
@@ -161,7 +249,7 @@ int main(int argc, char **argv) {
             long filesize = ftell(file);
             rewind(file);
             
-            command_t cmd_pkt = {2};
+            command_t cmd_pkt = {2, "", "", "", "", ""};  // Initialize all fields with default values
             strncpy(cmd_pkt.path, arg, MAX_PATH_LENGTH);
             SSL_write(ssl, &cmd_pkt, sizeof(command_t));
             
@@ -171,8 +259,11 @@ int main(int argc, char **argv) {
             SSL_write(ssl, &ft, sizeof(file_transfer_t));
             
             char response[20];
-            SSL_read(ssl, response, sizeof(response));
-            response[sizeof(response)-1] = '\0';
+            int bytes = SSL_read(ssl, response, sizeof(response) - 1); // leave space for '\0'
+
+            if (bytes > 0) {
+                response[bytes] = '\0';  // Null-terminate just in case you want to use it
+            }
             
             if (strcmp(response, "UPLOAD_START") != 0) {
                 printf("Server refused upload\n");
@@ -198,6 +289,72 @@ int main(int argc, char **argv) {
             } else {
                 printf("Upload failed\n");
             }
+        } 
+        else if (strcmp(cmd, "cd") == 0) {
+            command_t cmd_pkt = {3, "", "", "", "", ""}; // type 3 = cd
+            if (arg) {
+                strncpy(cmd_pkt.path, arg, MAX_PATH_LENGTH);
+            } else {
+                // If no arg provided, change to home directory
+                strncpy(cmd_pkt.path, "~", MAX_PATH_LENGTH);
+            }
+            
+            SSL_write(ssl, &cmd_pkt, sizeof(command_t));
+            
+            char response[32];
+            int bytes = SSL_read(ssl, response, sizeof(response));
+            if (bytes > 0) {
+                response[bytes] = '\0';
+                if (strcmp(response, "CD_SUCCESS") != 0) {
+                    printf("Error: %s\n", response);
+                }
+            }
+
+            memset(&cmd_pkt, 0, sizeof(command_t));
+            cmd_pkt.type = 4; // type 4 = pwd
+            SSL_write(ssl, &cmd_pkt, sizeof(command_t));
+
+            char path[MAX_PATH_LENGTH];
+            bytes = SSL_read(ssl, path, sizeof(path));
+            if (bytes > 0) {
+                path[bytes] = '\0';
+                printf("Current directory: %s\n", path);
+            }
+        }
+        else if (strcmp(cmd, "pwd") == 0) {
+            command_t cmd_pkt = {4, "", "", "", "", ""}; // type 4 = pwd
+            SSL_write(ssl, &cmd_pkt, sizeof(command_t));
+            
+            char path[MAX_PATH_LENGTH];
+            int bytes = SSL_read(ssl, path, sizeof(path));
+            if (bytes > 0) {
+                path[bytes] = '\0';
+                printf("Current directory: %s\n", path);
+            }
+        }
+        else if (strcmp(cmd, "mkdir") == 0 && arg) {
+            command_t cmd_pkt = {5, "", "", "", "", ""}; // type 8 = mkdir
+            strncpy(cmd_pkt.path, arg, MAX_PATH_LENGTH);
+            SSL_write(ssl, &cmd_pkt, sizeof(command_t));
+        
+            char response[BUFFER_SIZE];
+            int bytes = SSL_read(ssl, response, sizeof(response)-1);
+            if (bytes > 0) {
+                response[bytes] = '\0';
+                printf("%s\n", response);
+            }
+        }
+        else if (strcmp(cmd, "rmdir") == 0 && arg) {
+            command_t cmd_pkt = {6, "", "", "", "", ""}; // type 9 = rmdir
+            strncpy(cmd_pkt.path, arg, MAX_PATH_LENGTH);
+            SSL_write(ssl, &cmd_pkt, sizeof(command_t));
+        
+            char response[BUFFER_SIZE];
+            int bytes = SSL_read(ssl, response, sizeof(response)-1);
+            if (bytes > 0) {
+                response[bytes] = '\0';
+                printf("%s\n", response);
+            }
         }
         else {
             printf("Unknown command. Type 'help' for available commands.\n");
@@ -208,4 +365,4 @@ int main(int argc, char **argv) {
     close(sockfd);
     SSL_CTX_free(ctx);
     return 0;
-}
+} 
