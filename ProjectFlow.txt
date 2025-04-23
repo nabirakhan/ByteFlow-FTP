@@ -1,7 +1,0 @@
-byteflow-ftp/
-├── common.h
-├── server.c
-├── client.c
-├── Makefile
-├── cert.pem
-└── key.pem
