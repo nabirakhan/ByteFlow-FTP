@@ -60,7 +60,7 @@ int init_database(server_state_t *state) {
 
     // Add default admin user if not exists
     sql = "INSERT OR IGNORE INTO users (username, password, home_dir) "
-          "VALUES ('admin', 'password', '/mnt/e/linux/ftpp');";
+          "VALUES ('admin', '1234', '/home/student/Desktop/ByteFlow-FTP');";
     rc = sqlite3_exec(state->db, sql, 0, 0, &err_msg);
     if (rc != SQLITE_OK) {
         fprintf(stderr, "SQL error: %s\n", err_msg);
@@ -238,7 +238,7 @@ void load_certificates(SSL_CTX *ctx, const char *cert_file, const char *key_file
 
 void enqueue_client(client_info_t client) {
     pthread_mutex_lock(&mutex);
-    printf("en\n");
+    //printf("en\n");
     if (queue_count < MAX_CLIENT_SUPPORTED) {
         queue_rear = (queue_rear + 1) % MAX_CLIENT_SUPPORTED;
         client_queue[queue_rear] = client;
@@ -250,7 +250,7 @@ void enqueue_client(client_info_t client) {
 
 client_info_t dequeue_client() {
     pthread_mutex_lock(&mutex);
-    printf("den\n");
+    //printf("den\n");
     while (queue_count == 0 && !shutdown_server) {
         pthread_cond_wait(&cond_var, &mutex);
     }
@@ -268,10 +268,10 @@ client_info_t dequeue_client() {
 void *thread_function(void *arg) {
     (void)arg;
     while (!shutdown_server) {
-        printf("L  ");
+        //printf("L  ");
         client_info_t client = dequeue_client();
         if (client.client_fd != -1) {
-            printf("heyyyyy\n");
+            //printf("heyyyyy\n");
             handle_client((void *)&client);
         }
     }
@@ -279,7 +279,7 @@ void *thread_function(void *arg) {
 }
 
 void *handle_client(void *arg) {
-    printf("LAaAA\n");
+    //printf("LAaAA\n");
     client_info_t *client = (client_info_t *)arg;
     int client_fd = client->client_fd;
     SSL *ssl = client->ssl;
@@ -306,7 +306,7 @@ void *handle_client(void *arg) {
     // Main command loop
     command_t cmd;
     while (1) {
-        printf("Whilleeee");
+        //printf("Whilleeee");
         bytes = SSL_read(ssl, &cmd, sizeof(command_t));
         if (bytes <= 0) break;
         switch (cmd.type) {
@@ -315,9 +315,9 @@ void *handle_client(void *arg) {
                 DIR *dir;
                 struct dirent *ent;
                 char full_path[MAX_PATH_LENGTH];
-                strlcpy(full_path, current_dir, sizeof(full_path));
-                strlcat(full_path, "/", sizeof(full_path));
-                strlcat(full_path, cmd.path, sizeof(full_path));
+                strncpy(full_path, current_dir, sizeof(full_path));
+                strncat(full_path, "/", sizeof(full_path));
+                strncat(full_path, cmd.path, sizeof(full_path));
 
                 SSL_write(ssl, full_path, strlen(full_path));
                 SSL_write(ssl, "\n", 1);
@@ -337,9 +337,9 @@ void *handle_client(void *arg) {
                 strncpy(ft.filename, cmd.path, MAX_PATH_LENGTH);
                 
                 char full_path[MAX_PATH_LENGTH];
-                strlcpy(full_path, current_dir, sizeof(full_path));
-                strlcat(full_path, "/", sizeof(full_path));
-                strlcat(full_path, cmd.path, sizeof(full_path));
+                strncpy(full_path, current_dir, sizeof(full_path));
+                strncat(full_path, "/", sizeof(full_path));
+                strncat(full_path, cmd.path, sizeof(full_path));
                 
                 FILE *file = fopen(full_path, "rb");
                 if (!file) {
@@ -368,9 +368,9 @@ void *handle_client(void *arg) {
                 SSL_read(ssl, &ft, sizeof(file_transfer_t));
                 
                 char full_path[MAX_PATH_LENGTH];
-                strlcpy(full_path, current_dir, sizeof(full_path));
-                strlcat(full_path, "/", sizeof(full_path));
-                strlcat(full_path, cmd.path, sizeof(full_path));
+                strncpy(full_path, current_dir, sizeof(full_path));
+                strncat(full_path, "/", sizeof(full_path));
+                strncat(full_path, cmd.path, sizeof(full_path));
                 
                 FILE *file = fopen(full_path, "wb");
                 if (!file) {
@@ -401,12 +401,12 @@ void *handle_client(void *arg) {
                 // Handle relative paths
                 if (cmd.path[0] == '/') {
                     // Absolute path
-                    strlcpy(full_path, cmd.path, sizeof(full_path));
+                    strncpy(full_path, cmd.path, sizeof(full_path));
                 } else {
                     // Relative path
-                    strlcpy(full_path, current_dir, sizeof(full_path));
-                    strlcat(full_path, "/", sizeof(full_path));
-                    strlcat(full_path, cmd.path, sizeof(full_path));
+                    strncpy(full_path, current_dir, sizeof(full_path));
+                    strncat(full_path, "/", sizeof(full_path));
+                    strncat(full_path, cmd.path, sizeof(full_path));
                 }
 
                 // Normalize path (remove ./ and ../)
@@ -448,9 +448,9 @@ void *handle_client(void *arg) {
             }
             case 5: { // Make directory
                 char full_path[MAX_PATH_LENGTH];
-                strlcpy(full_path, current_dir, sizeof(full_path));
-                strlcat(full_path, "/", sizeof(full_path));
-                strlcat(full_path, cmd.path, sizeof(full_path));
+                strncpy(full_path, current_dir, sizeof(full_path));
+                strncat(full_path, "/", sizeof(full_path));
+                strncat(full_path, cmd.path, sizeof(full_path));
 
                 int status = mkdir(full_path, 0755);
                 const char *msg = (status == 0) ? "Directory created successfully" : strerror(errno);
@@ -459,9 +459,9 @@ void *handle_client(void *arg) {
             }
             case 6: { // Remove directory
                 char full_path[MAX_PATH_LENGTH];
-                strlcpy(full_path, current_dir, sizeof(full_path));
-                strlcat(full_path, "/", sizeof(full_path));
-                strlcat(full_path, cmd.path, sizeof(full_path));
+                strncpy(full_path, current_dir, sizeof(full_path));
+                strncat(full_path, "/", sizeof(full_path));
+                strncat(full_path, cmd.path, sizeof(full_path));
             
                 int status = rmdir(full_path);
                 const char *msg = (status == 0) ? "Directory removed successfully" : strerror(errno);
