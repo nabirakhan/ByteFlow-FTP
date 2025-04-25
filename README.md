@@ -63,11 +63,9 @@ gcc server.c -o ftp_server -lssl -lcrypto -lsqlite3 -lpthread
 gcc client.c -o ftp_client -lssl -lcrypto -lpthread
 
 # Optional: Generate self-signed certificates
-openssl req -x509 -newkey rsa:4096 -keyout key.pem -out cert.pem -days 365
+openssl req -x509 -newkey rsa:4096 -keyout key.pem -out cert.pem -days 365  
 
 ---
 
 ## License
 This project is licensed under the MIT License.
-
-
