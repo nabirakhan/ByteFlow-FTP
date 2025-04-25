@@ -16,7 +16,8 @@ void show_help() {
 void handle_admin_commands(SSL *ssl) {
     char input[256];
     printf("Admin commands:\n");
-    printf("  adduser <username> <password> <homedir>\n");
+    printf("  adduser <username> <password> <homedir(server side)>\n
+            Input the server directory you want to make available to clients\n");
     printf("  deluser <username>\n");
     printf("  listusers           - List all users\n");
     printf("  exit                - Exit admin mode\n\n");
@@ -47,7 +48,7 @@ void handle_admin_commands(SSL *ssl) {
                 response[sizeof(response)-1] = '\0';
                 printf("%s\n", response);
             } else {
-                printf("Usage: adduser <username> <password> <homedir>\n");
+                printf("Usage: adduser <username> <password> <homedir(server side)>\n");
             }
         } else if (strcmp(cmd, "deluser") == 0) {
             char *username = strtok(NULL, " ");
