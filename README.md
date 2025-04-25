@@ -5,9 +5,9 @@
 This hybrid-architecture FTP server utilizes process isolation for authentication, thread pools for client handling, and inter-process communication mechanisms to achieve both performance and scalability. Featuring TLS/SSL encryption, SQLite-backed user authentication, and a custom protocol for file operations, ByteFlow-FTP offers robust multi-user support with real-time administrative controls and secure, optimized connection management.
 
 ## Team Members
-- **Aisha Asif** (23K-0915) - Team Lead, Security Implementation  
-- **Nabira Khan** (23K-0914) - Database & Authentication Specialist  
-- **Rameen Zehra** (23K-0501) - Network Protocols & Threading Expert
+- **Aisha Asif** (23K-0915)  
+- **Nabira Khan** (23K-0914)   
+- **Rameen Zehra** (23K-0501) 
 
 ### Key Features
 - 🔒 Secure TLS/SSL-encrypted communication  
