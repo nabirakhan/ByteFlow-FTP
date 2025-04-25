@@ -41,7 +41,6 @@ void handle_admin_commands(SSL *ssl) {
                 strncpy(cmd_pkt.password, password, 50);
                 strncpy(cmd_pkt.home_dir, homedir, MAX_PATH_LENGTH);
                 SSL_write(ssl, &cmd_pkt, sizeof(command_t));
-                printf("laa");
                 
                 char response[20];
                 SSL_read(ssl, response, sizeof(response));
