@@ -306,7 +306,7 @@ void *handle_client(void *arg) {
     // Main command loop
     command_t cmd;
     while (1) {
-        //printf("Whilleeee");
+        printf("Whilleeee");
         bytes = SSL_read(ssl, &cmd, sizeof(command_t));
         if (bytes <= 0) break;
         switch (cmd.type) {
