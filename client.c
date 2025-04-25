@@ -16,8 +16,8 @@ void show_help() {
 void handle_admin_commands(SSL *ssl) {
     char input[256];
     printf("Admin commands:\n");
-    printf("  adduser <username> <password> <homedir(server side)>\n
-            Input the server directory you want to make available to clients\n");
+    printf("  adduser <username> <password> <homedir(server side)>\n"
+        "  (Input the server directory you want to make available to clients)\n");
     printf("  deluser <username>\n");
     printf("  listusers           - List all users\n");
     printf("  exit                - Exit admin mode\n\n");
@@ -36,7 +36,7 @@ void handle_admin_commands(SSL *ssl) {
             char *homedir = strtok(NULL, " ");
             
             if (username && password && homedir) {
-                command_t cmd_pkt = {7, "", "", "", "", ""};  // Initialize all fields with default values
+                command_t cmd_pkt = {7, "", "", "", "", ""};  
                 strncpy(cmd_pkt.username, username, 50);
                 strncpy(cmd_pkt.password, password, 50);
                 strncpy(cmd_pkt.home_dir, homedir, MAX_PATH_LENGTH);
@@ -170,7 +170,6 @@ int main(int argc, char **argv) {
     
     // Main command loop
     char input[256];
-    //char current_dir[MAX_PATH_LENGTH] = ""; //not used warning
     
     while (1) {
         printf("user> ");
@@ -189,7 +188,7 @@ int main(int argc, char **argv) {
             show_help();
         }
         else if (strcmp(cmd, "ls") == 0) {
-            command_t cmd_pkt = {0, "", "", "", "", ""};  // Initialize all fields with default values
+            command_t cmd_pkt = {0, "", "", "", "", ""}; 
             if (arg) strncpy(cmd_pkt.path, arg, MAX_PATH_LENGTH);
             SSL_write(ssl, &cmd_pkt, sizeof(command_t));
             
@@ -206,7 +205,7 @@ int main(int argc, char **argv) {
             printf("\n");
         }
         else if (strcmp(cmd, "get") == 0 && arg) {
-            command_t cmd_pkt = {1, "", "", "", "", ""};  // Initialize all fields with default values
+            command_t cmd_pkt = {1, "", "", "", "", ""};  
             strncpy(cmd_pkt.path, arg, MAX_PATH_LENGTH);
             SSL_write(ssl, &cmd_pkt, sizeof(command_t));
             
@@ -250,7 +249,7 @@ int main(int argc, char **argv) {
             long filesize = ftell(file);
             rewind(file);
             
-            command_t cmd_pkt = {2, "", "", "", "", ""};  // Initialize all fields with default values
+            command_t cmd_pkt = {2, "", "", "", "", ""};  
             strncpy(cmd_pkt.path, arg, MAX_PATH_LENGTH);
             SSL_write(ssl, &cmd_pkt, sizeof(command_t));
             
@@ -260,10 +259,10 @@ int main(int argc, char **argv) {
             SSL_write(ssl, &ft, sizeof(file_transfer_t));
             
             char response[20];
-            int bytes = SSL_read(ssl, response, sizeof(response) - 1); // leave space for '\0'
+            int bytes = SSL_read(ssl, response, sizeof(response) - 1); 
 
             if (bytes > 0) {
-                response[bytes] = '\0';  // Null-terminate just in case you want to use it
+                response[bytes] = '\0';  
             }
             
             if (strcmp(response, "UPLOAD_START") != 0) {
@@ -292,7 +291,7 @@ int main(int argc, char **argv) {
             }
         } 
         else if (strcmp(cmd, "cd") == 0) {
-            command_t cmd_pkt = {3, "", "", "", "", ""}; // type 3 = cd
+            command_t cmd_pkt = {3, "", "", "", "", ""}; 
             if (arg) {
                 strncpy(cmd_pkt.path, arg, MAX_PATH_LENGTH);
             } else {
@@ -312,7 +311,7 @@ int main(int argc, char **argv) {
             }
 
             memset(&cmd_pkt, 0, sizeof(command_t));
-            cmd_pkt.type = 4; // type 4 = pwd
+            cmd_pkt.type = 4; 
             SSL_write(ssl, &cmd_pkt, sizeof(command_t));
 
             char path[MAX_PATH_LENGTH];
@@ -323,7 +322,7 @@ int main(int argc, char **argv) {
             }
         }
         else if (strcmp(cmd, "pwd") == 0) {
-            command_t cmd_pkt = {4, "", "", "", "", ""}; // type 4 = pwd
+            command_t cmd_pkt = {4, "", "", "", "", ""}; 
             SSL_write(ssl, &cmd_pkt, sizeof(command_t));
             
             char path[MAX_PATH_LENGTH];
@@ -334,7 +333,7 @@ int main(int argc, char **argv) {
             }
         }
         else if (strcmp(cmd, "mkdir") == 0 && arg) {
-            command_t cmd_pkt = {5, "", "", "", "", ""}; // type 8 = mkdir
+            command_t cmd_pkt = {5, "", "", "", "", ""}; 
             strncpy(cmd_pkt.path, arg, MAX_PATH_LENGTH);
             SSL_write(ssl, &cmd_pkt, sizeof(command_t));
         
@@ -346,7 +345,7 @@ int main(int argc, char **argv) {
             }
         }
         else if (strcmp(cmd, "rmdir") == 0 && arg) {
-            command_t cmd_pkt = {6, "", "", "", "", ""}; // type 9 = rmdir
+            command_t cmd_pkt = {6, "", "", "", "", ""}; 
             strncpy(cmd_pkt.path, arg, MAX_PATH_LENGTH);
             SSL_write(ssl, &cmd_pkt, sizeof(command_t));
         
