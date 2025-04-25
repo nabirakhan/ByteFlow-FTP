@@ -172,7 +172,7 @@ int main(int argc, char **argv) {
     //char current_dir[MAX_PATH_LENGTH] = ""; //not used warning
     
     while (1) {
-        printf("ftp> ");
+        printf("user> ");
         fgets(input, sizeof(input), stdin);
         input[strcspn(input, "\n")] = '\0';
         
