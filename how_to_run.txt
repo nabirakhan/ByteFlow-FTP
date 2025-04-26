@@ -1,0 +1,40 @@
+## 📋 Setup Instructions for ByteFlow-FTP (Ubuntu)
+
+> Install the required packages before building the project.
+
+### 🔧 Required Packages
+
+```bash
+sudo apt update
+sudo apt install build-essential libssl-dev libsqlite3-dev openssl
+```
+
+- `build-essential` — gcc, g++, make, and other compilers
+- `libssl-dev` — OpenSSL development libraries
+- `libsqlite3-dev` — SQLite development libraries
+- `openssl` — OpenSSL command-line tool for certificate generation
+
+---
+
+### 🛠️ Build and Run
+
+```bash
+make all       # Build server, client, init_db
+make cert      # (Optional) Generate SSL certificates
+./init_db      # Initialize the SQLite database
+./server       # Start the FTP server
+./client       # Start the FTP client
+```
+
+---
+
+### ⚡ Quick Summary
+
+- Install required libraries using `apt`
+- Run `make all`
+- (Optionally) run `make cert` for SSL
+- Start using `init_db`, `server`, and `client`
+
+---
+
+Would you also like a tiny badge-style "Requirements ✅" section to make your GitHub page even cleaner? 🚀 (Looks nice in a README.)
