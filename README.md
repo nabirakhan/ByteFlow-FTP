@@ -1,7 +1,7 @@
 # ByteFlow-FTP - Secure File Transfer System
 
 ## Project Description
-**ByteFlow-FTP** is a high-performance, secure FTP server developed in C, enabling seamless file exchange across networks. Designed as a 5th semester Operating Systems project at FAST NUCES, the system integrates key OS concepts such as multiprocessing, multithreading, synchronization, concurrency, and memory management to ensure efficient and secure data transfer.
+**ByteFlow-FTP** is a high-performance, secure FTP server developed in C, enabling seamless file exchange across networks. Designed as a 4th semester Operating Systems project at FAST NUCES, the system integrates key OS concepts such as multiprocessing, multithreading, synchronization, concurrency, and memory management to ensure efficient and secure data transfer.
 This hybrid-architecture FTP server utilizes process isolation for authentication, thread pools for client handling, and inter-process communication mechanisms to achieve both performance and scalability. Featuring TLS/SSL encryption, SQLite-backed user authentication, and a custom protocol for file operations, ByteFlow-FTP offers robust multi-user support with real-time administrative controls and secure, optimized connection management.
 
 ## Team Members
