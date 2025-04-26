@@ -21,9 +21,8 @@ Packages Explained:
 After installing, build and run with:
 
 ```bash
+make cert      # Generate SSL certificates
 make all       # Build server, client, and init_db
-make cert      # (Optional) Generate SSL certificates
-./init_db      # Initialize the SQLite database
 ./server       # Start the FTP server
 ./client       # Start the FTP client
 ```
@@ -34,7 +33,7 @@ Quick Steps Summary:
 1. Install libraries (copy-paste the apt command ✅)
 2. Run `make all`
 3. (Optional) Run `make cert` to create SSL certificates
-4. Start `init_db`, `server`, and `client`
+4. Start `server`, and `client`
 
 
 Ready to go! 🚀
